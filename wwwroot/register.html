@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Register | VM Automation Portal</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <style>
+        * { box-sizing: border-box; }
+
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background: linear-gradient(135deg, #020617, #1e293b);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 460px;
+            padding: 20px;
+        }
+
+        .card {
+            background: #111827;
+            border: 1px solid #334155;
+            border-radius: 16px;
+            padding: 35px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.45);
+        }
+
+        h1 {
+            margin: 0;
+            text-align: center;
+            font-size: 26px;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #94a3b8;
+            margin-top: 8px;
+            margin-bottom: 25px;
+            font-size: 14px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 7px;
+            color: #cbd5e1;
+            font-size: 14px;
+        }
+
+        input {
+            width: 100%;
+            padding: 13px;
+            margin-bottom: 18px;
+            border-radius: 8px;
+            border: 1px solid #475569;
+            background: #020617;
+            color: white;
+            font-size: 15px;
+            outline: none;
+        }
+
+        input:focus { border-color: #3b82f6; }
+
+        button {
+            width: 100%;
+            padding: 13px;
+            border: none;
+            border-radius: 8px;
+            background: #2563eb;
+            color: white;
+            font-size: 15px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        button:hover { background: #1d4ed8; }
+
+        button:disabled {
+            background: #475569;
+            cursor: not-allowed;
+        }
+
+        .message {
+            display: none;
+            margin-top: 16px;
+            padding: 12px;
+            border-radius: 8px;
+            text-align: center;
+            font-size: 14px;
+            word-break: break-word;
+        }
+
+        .error {
+            background: #7f1d1d;
+            color: #fecaca;
+        }
+
+        .success {
+            background: #14532d;
+            color: #bbf7d0;
+        }
+
+        .recovery-box {
+            display: none;
+            margin-top: 18px;
+            padding: 15px;
+            background: #0f172a;
+            border: 1px solid #38bdf8;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        .recovery-code {
+            font-size: 22px;
+            font-weight: bold;
+            letter-spacing: 1px;
+            margin-top: 10px;
+            color: #7dd3fc;
+        }
+
+        .link {
+            margin-top: 20px;
+            text-align: center;
+            font-size: 14px;
+        }
+
+        .link a {
+            color: #60a5fa;
+            text-decoration: none;
+        }
+
+        .link a:hover { text-decoration: underline; }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="card">
+            <h1>Create Account</h1>
+            <div class="subtitle">Register with a username and password</div>
+
+            <form id="registerForm">
+                <label for="username">Username</label>
+                <input type="text" id="username" placeholder="Enter username" required>
+
+                <label for="password">Password</label>
+                <input type="password" id="password" placeholder="Minimum 8 characters" required>
+
+                <label for="confirmPassword">Confirm password</label>
+                <input type="password" id="confirmPassword" placeholder="Confirm password" required>
+
+                <button type="submit" id="registerButton">Register</button>
+
+                <div id="message" class="message"></div>
+
+                <div id="recoveryBox" class="recovery-box">
+                    <div>Save this recovery code. It is shown only once.</div>
+                    <div id="recoveryCode" class="recovery-code"></div>
+                </div>
+            </form>
+
+            <div class="link">
+                Already have an account? <a href="/login.html">Login here</a>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const form = document.getElementById("registerForm");
+        const button = document.getElementById("registerButton");
+        const message = document.getElementById("message");
+        const recoveryBox = document.getElementById("recoveryBox");
+        const recoveryCode = document.getElementById("recoveryCode");
+
+        form.addEventListener("submit", async function (event) {
+            event.preventDefault();
+
+            message.style.display = "none";
+            recoveryBox.style.display = "none";
+            message.className = "message";
+
+            const username = document.getElementById("username").value.trim();
+            const password = document.getElementById("password").value;
+            const confirmPassword = document.getElementById("confirmPassword").value;
+
+            if (password !== confirmPassword) {
+                showMessage("Passwords do not match.", "error");
+                return;
+            }
+
+            button.disabled = true;
+            button.textContent = "Creating account...";
+
+            try {
+                const response = await fetch("/api/register", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({
+                        username: username,
+                        password: password
+                    })
+                });
+
+                const data = await response.json().catch(() => ({}));
+
+                if (response.ok) {
+                    showMessage("Account created successfully.", "success");
+                    recoveryCode.textContent = data.recoveryCode;
+                    recoveryBox.style.display = "block";
+                    button.style.display = "none";
+                } else {
+                    showMessage(data.error || "Registration failed.", "error");
+                }
+            } catch {
+                showMessage("Registration service unavailable.", "error");
+            }
+
+            button.disabled = false;
+            button.textContent = "Register";
+        });
+
+        function showMessage(text, type) {
+            message.textContent = text;
+            message.classList.add(type);
+            message.style.display = "block";
+        }
+    </script>
+</body>
+</html>

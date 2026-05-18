@@ -1,0 +1,2074 @@
+﻿<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>VM Automation Portal</title>
+  <style>
+    :root{
+      --bg: #0b0f14;
+      --panel: #0f1722;
+      --panel2:#0c1320;
+      --text: #e6edf6;
+      --muted:#9aa8bb;
+      --line: rgba(255,255,255,.08);
+      --accent:#7c5cff;
+      --accent2: rgba(124,92,255,.18);
+      --shadow: 0 18px 60px rgba(0,0,0,.45);
+      --radius: 18px;
+    }
+
+    *{ box-sizing:border-box; }
+    html,body{ height:100%; }
+    body{
+      margin:0;
+      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial;
+      background:
+        radial-gradient(1200px 900px at 70% 30%, rgba(124,92,255,.09), transparent 60%),
+        radial-gradient(900px 700px at 20% 80%, rgba(255,255,255,.04), transparent 55%),
+        var(--bg);
+      color: var(--text);
+      overflow:hidden;
+    }
+
+    .bg-geo{
+      pointer-events:none;
+      position:fixed;
+      inset:-40px;
+      opacity:.55;
+      filter: blur(.1px);
+      background:
+        repeating-linear-gradient(120deg, rgba(255,255,255,.03) 0 1px, transparent 1px 140px),
+        repeating-linear-gradient(30deg, rgba(255,255,255,.02) 0 1px, transparent 1px 110px);
+      mask-image: radial-gradient(1000px 700px at 70% 35%, #000 35%, transparent 70%);
+    }
+
+    .app{ min-height:100%; display:flex; }
+
+    .sidebar{
+      width: 300px;
+      background: linear-gradient(180deg, rgba(255,255,255,.02), transparent 55%), var(--panel);
+      border-right:1px solid var(--line);
+      padding: 22px 18px;
+      position:sticky;
+      top:0;
+      height:100vh;
+      flex: 0 0 auto;
+    }
+
+    .brand{
+      display:flex;
+      align-items:center;
+      gap:12px;
+      padding: 6px 8px 18px 8px;
+    }
+    .brand .mark{
+      width:34px;height:34px;
+      border-radius: 12px;
+      background: linear-gradient(180deg, rgba(124,92,255,.25), rgba(124,92,255,.06));
+      border:1px solid rgba(124,92,255,.35);
+      box-shadow: 0 10px 24px rgba(0,0,0,.35);
+      display:grid;
+      place-items:center;
+    }
+    .brand .mark svg{ opacity:.95; }
+    .brand .name{
+      display:flex;
+      flex-direction:column;
+      line-height:1.15;
+    }
+    .brand .name strong{ font-size: 14px; letter-spacing:.3px; }
+    .brand .name span{ font-size:12px; color:var(--muted); }
+
+    .menu{
+      margin-top:10px;
+      display:flex;
+      flex-direction:column;
+      gap:10px;
+    }
+
+    details{
+      border:1px solid var(--line);
+      border-radius: 14px;
+      background: rgba(255,255,255,.02);
+      overflow:hidden;
+    }
+
+    summary{
+      list-style:none;
+      cursor:pointer;
+      padding: 12px 12px;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
+      user-select:none;
+    }
+    summary::-webkit-details-marker{ display:none; }
+
+    .sum-left{
+      display:flex;
+      align-items:center;
+      gap:10px;
+      min-width:0;
+    }
+    .icon{
+      width:18px;height:18px;
+      opacity:.9;
+      flex:0 0 auto;
+    }
+    .sum-title{
+      font-size:13px;
+      letter-spacing:.2px;
+      white-space:nowrap;
+      overflow:hidden;
+      text-overflow:ellipsis;
+    }
+    .chev{
+      width:16px;height:16px;
+      opacity:.7;
+      transform: rotate(0deg);
+      transition: transform .18s ease;
+    }
+    details[open] .chev{ transform: rotate(180deg); }
+
+    .submenu{
+      padding: 4px 10px 10px 10px;
+      display:flex;
+      flex-direction:column;
+      gap:6px;
+      border-top:1px solid var(--line);
+      background: rgba(0,0,0,.12);
+    }
+
+    .navbtn{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      padding: 10px 10px;
+      border-radius: 12px;
+      border:1px solid transparent;
+      background: transparent;
+      color: var(--text);
+      font-size: 13px;
+      cursor:pointer;
+      text-align:left;
+      width:100%;
+    }
+    .navbtn:hover{
+      background: rgba(255,255,255,.03);
+      border-color: rgba(255,255,255,.06);
+    }
+    .navbtn.active{
+      background: var(--accent2);
+      border-color: rgba(124,92,255,.35);
+      box-shadow: 0 10px 20px rgba(0,0,0,.25);
+    }
+    .kbd{
+      color: var(--muted);
+      font-size: 11px;
+      border:1px solid rgba(255,255,255,.08);
+      border-bottom-color: rgba(255,255,255,.05);
+      padding: 2px 6px;
+      border-radius: 8px;
+      background: rgba(0,0,0,.12);
+      flex:0 0 auto;
+    }
+
+    .navdetails{
+      border:0;
+      border-radius: 12px;
+      background: transparent;
+      overflow:visible;
+    }
+
+    .navsummary{
+      padding:0;
+      margin:0;
+      border-radius: 12px;
+    }
+
+    .navsummary.navbtn{
+      user-select:none;
+    }
+
+    .navsubmenu{
+      margin-top:6px;
+      padding-left:10px;
+      display:flex;
+      flex-direction:column;
+      gap:6px;
+    }
+    .navbtn.subitem{
+      padding: 9px 10px;
+      font-size: 12.5px;
+      background: rgba(255,255,255,.01);
+      border-color: rgba(255,255,255,.05);
+    }
+    .navbtn.subitem:hover{
+      background: rgba(255,255,255,.03);
+    }
+
+    .side-footer{
+      position:absolute;
+      left:18px;
+      right:18px;
+      bottom:18px;
+      border-top:1px solid var(--line);
+      padding-top:14px;
+      color: var(--muted);
+      font-size:12px;
+      display:flex;
+      gap:10px;
+      justify-content:space-between;
+      align-items:center;
+    }
+
+    .main{ flex:1; padding: 24px 28px; overflow:auto;height: 100vh; }
+
+    .topbar{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:14px;
+      margin-bottom: 18px;
+    }
+
+    .crumb{
+      font-size: 12px;
+      color: var(--muted);
+      letter-spacing:.2px;
+    }
+
+    .status{
+      display:flex;
+      align-items:center;
+      gap:10px;
+      padding: 10px 12px;
+      border-radius: 999px;
+      border:1px solid var(--line);
+      background: rgba(255,255,255,.02);
+      font-size:12px;
+      color: var(--muted);
+    }
+    .dot{
+      width:8px;height:8px;border-radius:50%;
+      background: rgba(255,255,255,.18);
+      box-shadow: 0 0 0 6px rgba(255,255,255,.03);
+    }
+    .dot.ok{
+      background: rgba(124,92,255,.9);
+      box-shadow: 0 0 0 6px rgba(124,92,255,.12);
+    }
+
+    .hero{
+      position:relative;
+      border:1px solid var(--line);
+      border-radius: var(--radius);
+      padding: 36px 36px;
+      background:
+        radial-gradient(1200px 600px at 80% 10%, rgba(124,92,255,.16), transparent 55%),
+        radial-gradient(700px 450px at 15% 85%, rgba(255,255,255,.05), transparent 60%),
+        rgba(255,255,255,.02);
+      box-shadow: var(--shadow);
+      overflow:hidden;
+    }
+
+    .hero::after{
+      content:"";
+      position:absolute;
+      inset:-2px;
+      background:
+        radial-gradient(500px 220px at 78% 42%, rgba(124,92,255,.12), transparent 62%),
+        radial-gradient(340px 240px at 60% 70%, rgba(255,255,255,.05), transparent 70%);
+      pointer-events:none;
+      opacity:.9;
+    }
+
+    .hero-inner{
+      position:relative;
+      width: 100%;
+      max-width: 1400px;
+    }
+
+    h1{
+      margin:0;
+      font-size: 42px;
+      letter-spacing: -0.8px;
+      line-height:1.06;
+    }
+
+    .sub{
+      margin: 12px 0 0 0;
+      font-size: 14px;
+      line-height:1.6;
+      color: var(--muted);
+      max-width: 66ch;
+    }
+
+    .actions{
+      margin-top: 18px;
+      display:flex;
+      align-items:center;
+      gap:12px;
+      flex-wrap:wrap;
+    }
+
+    .btn{
+      border:1px solid transparent;
+      border-radius: 14px;
+      padding: 11px 14px;
+      background: rgba(255,255,255,.03);
+      color: var(--text);
+      font-weight:600;
+      font-size: 13px;
+      cursor:pointer;
+    }
+    .btn:hover{ background: rgba(255,255,255,.05); }
+    .btn:disabled{
+      opacity:.65;
+      cursor:not-allowed;
+      filter:none;
+    }
+
+    .btn.primary{
+      background: linear-gradient(180deg, rgba(124,92,255,.95), rgba(124,92,255,.72));
+      border-color: rgba(124,92,255,.35);
+      box-shadow: 0 14px 26px rgba(0,0,0,.35);
+    }
+    .btn.primary:hover{ filter: brightness(1.05); }
+    .btn.primary:disabled:hover{ filter:none; }
+
+    .grid{
+      margin-top: 16px;
+      display:grid;
+      grid-template-columns: repeat(12, 1fr);
+      gap: 12px;
+    }
+
+    .card{
+      border:1px solid var(--line);
+      border-radius: var(--radius);
+      background: rgba(255,255,255,.02);
+      padding: 14px 14px;
+      min-height: 108px;
+    }
+    .card h3{
+      margin:0;
+      font-size: 13px;
+      letter-spacing:.25px;
+      color: var(--text);
+      font-weight: 650;
+    }
+    .card p{
+      margin: 8px 0 0 0;
+      color: var(--muted);
+      font-size: 13px;
+      line-height:1.5;
+    }
+
+    .span-7{ grid-column: span 7; }
+    .span-5{ grid-column: span 5; }
+    .span-12{ grid-column: span 12; }
+
+    .form-grid{
+      display:grid;
+      grid-template-columns: repeat(12, 1fr);
+      gap: 10px;
+      margin-top: 10px;
+    }
+    .field{
+      grid-column: span 6;
+      display:flex;
+      flex-direction:column;
+      gap:6px;
+      min-width: 0;
+    }
+    .field.full{ grid-column: span 12; }
+    .field.third{ grid-column: span 4; }
+    .label{
+      font-size: 12px;
+      color: var(--muted);
+      letter-spacing:.2px;
+    }
+
+    .input, .select{
+      width:100%;
+      border-radius: 14px;
+      padding: 10px 12px;
+      border:1px solid rgba(255,255,255,.10);
+      background: rgba(0,0,0,.18);
+      color: var(--text);
+      outline:none;
+    }
+    .input:focus, .select:focus, .cmdarea:focus{
+      border-color: rgba(124,92,255,.45);
+      box-shadow: 0 0 0 3px rgba(124,92,255,.10);
+    }
+    .input[readonly]{
+      opacity: .96;
+    }
+
+    .select{
+      appearance: none;
+      -webkit-appearance: none;
+      -moz-appearance: none;
+      background:
+        linear-gradient(180deg, rgba(255,255,255,.02), rgba(0,0,0,.14)),
+        rgba(0,0,0,.18);
+      border: 1px solid rgba(255,255,255,.12);
+      color: var(--text);
+      padding-right: 40px;
+      box-shadow:
+        inset 0 1px 0 rgba(255,255,255,.04),
+        0 10px 18px rgba(0,0,0,.18);
+    }
+
+    .select option{
+      background: #0b0f14;
+      color: var(--text);
+    }
+
+    .select option:checked{
+      background: rgba(124,92,255,.35);
+      color: var(--text);
+    }
+
+    .note{
+      margin: 4px 0 0 0;
+      font-size: 12px;
+      color: var(--muted);
+      line-height:1.45;
+      opacity:.95;
+      white-space: normal;
+      word-break: normal;
+      overflow-wrap: anywhere;
+      max-width: 100%;
+    }
+    .note strong{
+      color: rgba(230,237,246,.92);
+      font-weight: 650;
+    }
+
+    .hint{
+      margin-top: 8px;
+      font-size: 12px;
+      color: var(--muted);
+      line-height:1.55;
+      white-space: normal;
+      overflow-wrap: anywhere;
+      max-width: 100%;
+    }
+
+    .pill{
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+      padding: 6px 10px;
+      border-radius: 999px;
+      border:1px solid rgba(255,255,255,.10);
+      background: rgba(255,255,255,.02);
+      color: var(--muted);
+      font-size: 12px;
+      white-space: normal;
+      line-height: 1.4;
+      max-width: 100%;
+    }
+    .warn{
+      border-color: rgba(255,255,255,.12);
+      background: rgba(255,255,255,.03);
+      color: var(--muted);
+    }
+    .err{
+      border-color: rgba(255, 120, 120, .25);
+      background: rgba(255, 120, 120, .08);
+      color: rgba(255, 200, 200, .95);
+    }
+    .okpill{
+      border-color: rgba(124,92,255,.35);
+      background: rgba(124,92,255,.10);
+      color: rgba(230,237,246,.90);
+    }
+
+    #singleVmCard,
+    #companyVmCard{
+      width: 100% !important;
+      max-width: 100% !important;
+      justify-self: stretch;
+      align-self: stretch;
+    }
+    #singleVmCard .form-grid,
+    #companyVmCard .form-grid{
+      width: 100% !important;
+      max-width: 100% !important;
+      justify-self: stretch;
+      align-self: stretch;
+    }
+    #singleVmCard .field,
+    #singleVmCard .field.full,
+    #companyVmCard .field,
+    #companyVmCard .field.full{
+      width: 100% !important;
+      max-width: 100% !important;
+      justify-self: stretch;
+      align-self: stretch;
+    }
+    #singleVmCard #singleVmError,
+    #companyVmCard #companyVmError{
+      max-width: 100% !important;
+      width: 100% !important;
+    }
+    #singleVmCard #vmFormHintPill,
+    #companyVmCard #companyFormHintPill{
+      width: 100%;
+    }
+
+    .pricing-wrap{
+      margin-top: 10px;
+      display:flex;
+      flex-direction:column;
+      gap:12px;
+      max-width: 100%;
+    }
+    .pricing-lead{
+      margin: 6px 0 0 0;
+      color: var(--muted);
+      font-size: 13px;
+      line-height:1.6;
+      max-width: 110ch;
+    }
+    .pricing-section{
+      border:1px solid rgba(255,255,255,.08);
+      border-radius: 16px;
+      padding: 14px 14px;
+      background: rgba(0,0,0,.10);
+    }
+    .pricing-section h4{
+      margin:0;
+      font-size: 13px;
+      letter-spacing:.25px;
+      font-weight: 700;
+      color: rgba(230,237,246,.95);
+    }
+    .pricing-section p{
+      margin: 8px 0 0 0;
+      color: var(--muted);
+      font-size: 13px;
+      line-height:1.6;
+    }
+    .pricing-badges{
+      margin-top:10px;
+      display:flex;
+      flex-wrap:wrap;
+      gap:8px;
+    }
+    .pricing-badges .pill{
+      background: rgba(255,255,255,.02);
+    }
+    .price{
+      color: rgba(124,92,255,.95);
+      font-weight: 800;
+      letter-spacing:.2px;
+    }
+
+    .table{
+      width:100%;
+      border-collapse: collapse;
+      margin-top: 10px;
+      overflow:hidden;
+      border-radius: 14px;
+      border:1px solid rgba(255,255,255,.08);
+    }
+    .table th, .table td{
+      padding: 10px 10px;
+      text-align:left;
+      font-size: 12.5px;
+      color: var(--muted);
+      border-bottom: 1px solid rgba(255,255,255,.06);
+      vertical-align: top;
+    }
+    .table th{
+      color: rgba(230,237,246,.92);
+      font-weight: 750;
+      background: rgba(255,255,255,.03);
+    }
+    .table tr:last-child td{
+      border-bottom: none;
+    }
+    .mono{
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+      font-size: 12px;
+      color: rgba(230,237,246,.88);
+    }
+
+    .cmdwrap{
+      margin-top: 12px;
+      border: 1px solid rgba(255,255,255,.10);
+      border-radius: 16px;
+      background: rgba(0,0,0,.14);
+      padding: 12px 12px;
+    }
+    .cmdhead{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
+      margin-bottom: 10px;
+      flex-wrap:wrap;
+    }
+    .cmdhead .label{
+      margin:0;
+    }
+    .cmdpath{
+      display:grid;
+      grid-template-columns: 1fr auto;
+      gap:10px;
+      width:100%;
+      margin-top: 6px;
+    }
+    .cmdpath .input{
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+      font-size: 12.5px;
+    }
+    .cmdarea{
+      width: 100%;
+      min-height: 110px;
+      resize: vertical;
+      border-radius: 14px;
+      padding: 10px 12px;
+      border: 1px solid rgba(255,255,255,.10);
+      background: rgba(0,0,0,.18);
+      color: rgba(230,237,246,.92);
+      outline: none;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+      font-size: 12.5px;
+      line-height: 1.45;
+      white-space: pre;
+    }
+    .cmdrow{
+      margin-top: 10px;
+      display:flex;
+      align-items:center;
+      gap:10px;
+      flex-wrap:wrap;
+    }
+    .btn.small{
+      padding: 9px 12px;
+      border-radius: 12px;
+      font-size: 12.5px;
+      font-weight: 650;
+    }
+
+    .results-grid{
+      margin-top: 12px;
+      display:grid;
+      grid-template-columns: repeat(12, 1fr);
+      gap: 10px;
+    }
+    .resultbox{
+      grid-column: span 4;
+      border:1px solid rgba(255,255,255,.08);
+      border-radius: 14px;
+      padding: 12px;
+      background: rgba(255,255,255,.02);
+      min-height: 86px;
+    }
+    .resultbox .rlabel{
+      font-size: 11px;
+      color: var(--muted);
+      letter-spacing:.22px;
+      margin-bottom: 6px;
+      text-transform: uppercase;
+    }
+    .resultbox .rvalue{
+      font-size: 13px;
+      color: var(--text);
+      line-height:1.5;
+      overflow-wrap:anywhere;
+      word-break:break-word;
+    }
+    .resultbox .rvalue.mono{
+      font-size: 12px;
+    }
+
+    .inline-actions{
+      display:flex;
+      gap:8px;
+      flex-wrap:wrap;
+      margin-top: 8px;
+    }
+
+    .section-title{
+      margin: 0 0 8px 0;
+      font-size: 12px;
+      color: rgba(230,237,246,.90);
+      font-weight: 700;
+      letter-spacing: .24px;
+      text-transform: uppercase;
+    }
+
+    .muted-line{
+      color: var(--muted);
+      font-size: 12.5px;
+      line-height: 1.55;
+      margin-top: 8px;
+      overflow-wrap: anywhere;
+    }
+
+    @media (max-height: 820px){
+      .main{ padding: 18px 22px; }
+      .topbar{ margin-bottom: 14px; }
+      .hero{ padding: 30px 30px; }
+      h1{ font-size: 38px; }
+      .actions{ margin-top: 14px; }
+      .grid{ margin-top: 14px; gap: 10px; }
+      .card{ padding: 12px 12px; min-height: 96px; }
+      .form-grid{ gap: 9px; margin-top: 8px; }
+      .input, .select{ padding: 9px 12px; }
+      .note{ font-size: 11.5px; }
+      .table th, .table td{ padding: 9px 9px; }
+    }
+
+    @media (max-width: 1200px){
+      .main{ padding: 20px 22px; }
+      .hero-inner{ max-width: 1100px; }
+      h1{ font-size: 40px; }
+      .grid{ gap: 10px; }
+      .card{ min-height: 102px; }
+    }
+
+    @media (max-width: 1024px){
+      .resultbox{ grid-column: span 6; }
+    }
+
+    @media (max-width: 860px){
+      .hero-inner{ max-width: 100%; }
+      .span-7, .span-5{ grid-column: span 12; }
+      .field{ grid-column: span 12; }
+      .field.third{ grid-column: span 12; }
+      .pricing-badges{ gap:6px; }
+      .resultbox{ grid-column: span 12; }
+      .cmdpath{ grid-template-columns: 1fr; }
+    }
+
+    #createMenu > summary {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      width: 100%;
+      padding: 10px 10px;
+      border-radius: 12px;
+      border: 1px solid transparent;
+      background: transparent;
+      color: var(--text);
+      font-size: 13px;
+      cursor: pointer;
+    }
+
+    #createMenu > summary:hover {
+      background: rgba(255,255,255,.03);
+      border-color: rgba(255,255,255,.06);
+    }
+
+    #createMenu > summary::-webkit-details-marker {
+      display: none;
+    }
+  </style>
+</head>
+<body>
+  <div style="position:fixed; top:15px; right:20px; z-index:9999; display:flex; align-items:center; gap:12px; background:rgba(15,23,42,0.92); border:1px solid rgba(255,255,255,0.12); padding:10px 14px; border-radius:12px; box-shadow:0 12px 30px rgba(0,0,0,.35);">
+    <span style="font-size:14px; color:#e6edf6;">Logged in as: <strong id="userDisplay">Loading...</strong></span>
+    <button onclick="logout()" type="button" style="padding:8px 14px; cursor:pointer; border:none; border-radius:8px; background:#ef4444; color:white; font-weight:700;">
+      Logout
+    </button>
+  </div>
+
+  <div class="bg-geo" aria-hidden="true"></div>
+  <div class="app">
+    <aside class="sidebar">
+      <div class="brand">
+        <div class="mark" aria-hidden="true">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+            <path d="M7 17h10M6 13h12M8 9h8" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+          </svg>
+        </div>
+        <div class="name">
+          <strong>VM Automation</strong>
+          <span>HND Project Portal</span>
+        </div>
+      </div>
+
+      <nav class="menu" aria-label="Left navigation">
+        <details open>
+          <summary>
+            <div class="sum-left">
+              <svg class="icon" viewBox="0 0 24 24" fill="none">
+                <path d="M4 7h16M4 12h10M4 17h16" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+              </svg>
+              <div class="sum-title">Menu</div>
+            </div>
+            <svg class="chev" viewBox="0 0 24 24" fill="none">
+              <path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </summary>
+
+          <div class="submenu">
+            <button class="navbtn active" data-view="home" type="button">Home <span class="kbd">H</span></button>
+
+            <details class="navdetails" id="createMenu">
+              <summary class="navsummary navbtn" id="createMenuSummary">
+                <span>Create VM</span>
+                <span style="display:flex;align-items:center;gap:8px">
+                  <span class="kbd">C</span>
+                  <svg class="chev" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                    <path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                  </svg>
+                </span>
+              </summary>
+
+              <div class="navsubmenu">
+                <button class="navbtn subitem" data-view="create_single" type="button">Single VM <span class="kbd">1</span></button>
+                <button class="navbtn subitem" data-view="create_company" type="button">Company use VMs <span class="kbd">2</span></button>
+              </div>
+            </details>
+
+           
+<button class="navbtn" data-view="pricing" type="button">Pricing <span class="kbd">P</span></button>
+
+<button class="navbtn" data-view="your_vms" type="button">Your VMs <span class="kbd">V</span></button>
+
+<a class="navbtn" href="http://192.168.109.10:8081/guacamole" target="_blank" style="text-decoration:none;">
+  Open VM in Browser <span class="kbd">G</span>
+</a>
+
+<button class="navbtn" data-view="about" type="button">About Us <span class="kbd">A</span></button>          </div>
+        </details>
+      </nav>
+
+      <div class="side-footer">
+        <span>Build: HND Group 3</span>
+        <span style="color:rgba(124,92,255,.9)">With love, Group 3</span>
+      </div>
+    </aside>
+
+    <main class="main">
+      <div class="topbar">
+        <div class="crumb" id="crumb">Home</div>
+        <div class="status" title="System status">
+          <span class="dot ok"></span>
+          <span id="statusText">Ready</span>
+        </div>
+      </div>
+
+      <section class="hero" id="heroSection">
+        <div class="hero-inner">
+          <h1 id="title">VM Provisioning Portal</h1>
+          <p class="sub" id="subtitle">
+            Request, parameterize, and execute virtual machine builds. Select storage targets, track execution, and audit outputs.
+          </p>
+
+          <div class="actions">
+            <button class="btn primary" id="primaryAction" type="button">Open Create VM</button>
+            <button class="btn" id="secondaryAction" type="button">Open About Us</button>
+          </div>
+
+          <div id="yourVmsPanel" style="display:none; margin-top:22px;">
+  <div class="card span-12" style="min-height:auto;">
+    <h3>Your VMs</h3>
+
+    <p class="note">
+      These are the virtual machines created by your logged-in account.
+    </p>
+
+    <div class="inline-actions" style="margin-top:12px;">
+      <button class="btn small" type="button" id="refreshYourVmsBtn">Refresh VMs</button>
+    </div>
+
+    <div id="yourVmsError" class="pill err" style="display:none; margin-top:12px;"></div>
+
+    <div id="yourVmsList" style="margin-top:14px; display:flex; flex-direction:column; gap:14px;"></div>
+  </div>
+</div>
+
+          <div class="grid" aria-label="Functional tiles">
+            <div class="card span-7" id="cardA">
+              <h3>Control Flow</h3>
+              <p>User → Configuration → Execution. One screen per decision. No vendor styling.</p>
+            </div>
+
+            <div class="card span-5" id="cardB">
+              <h3>Storage Targets</h3>
+              <p>Local datastore, SMB/NFS, or cloud export depending on project scope.</p>
+            </div>
+
+<!-- Single VM -->
+<div class="card span-12" id="singleVmCard" style="display:none; min-height:auto;">
+  <h3>Single VM Parameters</h3>
+
+  <div class="form-grid" aria-label="Single VM form">
+    <div class="field full">
+      <div class="label">VM Name</div>
+      <input class="input" id="vmName" type="text" placeholder="e.g. HND-VM-01" autocomplete="off" />
+      <div class="note"><strong>Note:</strong> This value is sent to the backend as the provisioning username / VM identifier. Keep it simple: letters, numbers, dash only.</div>
+    </div>
+
+    <div class="field">
+      <div class="label">CPU (vCPU)</div>
+      <select class="select" id="vmCpu">
+        <option value="1">1 vCPU</option>
+        <option value="2" selected>2 vCPU</option>
+        <option value="4">4 vCPU</option>
+        <option value="6">6 vCPU</option>
+        <option value="8">8 vCPU</option>
+        <option value="12">12 vCPU</option>
+        <option value="16">16 vCPU</option>
+      </select>
+      <div class="note"><strong>Why increase CPU?</strong> More vCPU helps with parallel tasks and heavy workloads (e.g., compiling, multiple services, higher concurrency).</div>
+    </div>
+
+    <div class="field full">
+      <div class="label">RAM (GB)</div>
+      <select class="select" id="vmRam">
+        <option value="1">1 GB</option>
+        <option value="2">2 GB</option>
+        <option value="4" selected>4 GB</option>
+        <option value="8">8 GB</option>
+        <option value="12">12 GB</option>
+        <option value="16">16 GB</option>
+        <option value="24">24 GB</option>
+      </select>
+      <div class="note"><strong>Why increase RAM?</strong> More memory reduces paging and improves performance for databases, browsers, IDEs, and multiple running applications.</div>
+    </div>
+
+    <div class="field">
+      <div class="label">Storage (GB)</div>
+      <select class="select" id="vmStorage">
+        <option value="20">20 GB</option>
+        <option value="40" selected>40 GB</option>
+        <option value="60">60 GB</option>
+        <option value="80">80 GB</option>
+        <option value="120">120 GB</option>
+        <option value="160">160 GB</option>
+        <option value="200">200 GB</option>
+        <option value="256">256 GB</option>
+      </select>
+      <div class="note"><strong>Why increase storage?</strong> Larger disks are needed for OS + updates, applications, logs, and data growth (especially for labs and databases).</div>
+    </div>
+
+    <div class="field">
+      <div class="label">Notes</div>
+      <div class="pill warn" id="vmFormHintPill">Hyper-V demo parameters (adjust to host capacity)</div>
+      <div class="note"><strong>Tip:</strong> Keep resources within host limits to avoid slowdowns (CPU contention, RAM pressure, or disk I/O bottlenecks).</div>
+    </div>
+  </div>
+
+  <div class="pill" id="singleVmError" style="display:none;"></div>
+
+  <div class="results-grid" id="singleVmResults" style="display:none;">
+    <div class="resultbox">
+      <div class="rlabel">VM Name</div>
+      <div class="rvalue" id="singleResultVmName">-</div>
+    </div>
+
+    <div class="resultbox">
+      <div class="rlabel">Internal IP</div>
+      <div class="rvalue mono" id="singleResultInternalIp">-</div>
+    </div>
+
+    <div class="resultbox">
+      <div class="rlabel">External RDP Address</div>
+      <div class="rvalue mono" id="singleResultRdpAddress">-</div>
+    </div>
+
+    <div class="resultbox">
+      <div class="rlabel">Public RDP IP</div>
+      <div class="rvalue mono" id="singleResultPublicIp">-</div>
+    </div>
+
+    <div class="resultbox">
+      <div class="rlabel">External Port</div>
+      <div class="rvalue mono" id="singleResultExternalPort">-</div>
+    </div>
+
+    <div class="resultbox">
+      <div class="rlabel">Assigned User</div>
+      <div class="rvalue" id="singleResultAssignedUser">-</div>
+    </div>
+  </div>
+
+  <div class="cmdwrap" id="singleRdpWrap" style="display:none;">
+    <div class="cmdhead">
+      <div class="label">External RDP Access</div>
+<div class="inline-actions">
+  <button class="btn small" type="button" id="singleCopyRdpBtn">Copy RDP Address</button>
+  <button class="btn small" type="button" id="singleDownloadRdpBtn">Download .RDP</button>
+
+  <a class="btn small" href="http://192.168.109.10:8081/guacamole" target="_blank" style="text-decoration:none;">
+    Open in Browser
+  </a>
+</div>    
+</div>
+
+    <div class="cmdpath">
+      <input class="input" id="singleRdpAddressInput" type="text" readonly />
+    </div>
+
+    <div class="muted-line" id="singleRdpInfoLine">
+      Use the external RDP address shown above.
+    </div>
+  </div>
+</div>
+
+<!-- Company Use VMs -->
+<div class="card span-12" id="companyVmCard" style="display:none; min-height:auto;">
+  <h3>Company Use VM Parameters</h3>
+
+  <div class="form-grid" aria-label="Company VM form">
+    <div class="field">
+      <div class="label">VM Name Prefix</div>
+      <input class="input" id="companyVmPrefix" type="text" placeholder="e.g. HND-APP" autocomplete="off" />
+      <div class="note"><strong>Note:</strong> VMs will be generated as <em>Prefix-01</em>, <em>Prefix-02</em>, … based on the count.</div>
+    </div>
+
+    <div class="field">
+      <div class="label">Number of VMs</div>
+      <select class="select" id="companyVmCount">
+        <option value="2">2 VMs</option>
+        <option value="3" selected>3 VMs</option>
+        <option value="4">4 VMs</option>
+        <option value="5">5 VMs</option>
+        <option value="6">6 VMs</option>
+        <option value="7">7 VMs</option>
+        <option value="8">8 VMs</option>
+        <option value="9">9 VMs</option>
+        <option value="10">10 VMs</option>
+      </select>
+      <div class="note"><strong>Why select a count?</strong> Batch requests create multiple identical VMs using the same resource profile and naming scheme.</div>
+    </div>
+
+    <div class="field">
+      <div class="label">CPU (vCPU)</div>
+      <select class="select" id="companyVmCpu">
+        <option value="1">1 vCPU</option>
+        <option value="2" selected>2 vCPU</option>
+        <option value="4">4 vCPU</option>
+        <option value="6">6 vCPU</option>
+        <option value="8">8 vCPU</option>
+        <option value="12">12 vCPU</option>
+        <option value="16">16 vCPU</option>
+      </select>
+      <div class="note"><strong>Why increase CPU?</strong> More vCPU helps when many VMs are active and you run parallel services across the fleet.</div>
+    </div>
+
+    <div class="field full">
+      <div class="label">RAM (GB)</div>
+      <select class="select" id="companyVmRam">
+        <option value="1">1 GB</option>
+        <option value="2">2 GB</option>
+        <option value="4" selected>4 GB</option>
+        <option value="8">8 GB</option>
+        <option value="12">12 GB</option>
+        <option value="16">16 GB</option>
+        <option value="24">24 GB</option>
+        <option value="32">32 GB</option>
+        <option value="48">48 GB</option>
+      </select>
+      <div class="note"><strong>Why increase RAM?</strong> Enough memory per VM prevents paging across the batch (common issue when many VMs run on one host).</div>
+    </div>
+
+    <div class="field">
+      <div class="label">Storage (GB)</div>
+      <select class="select" id="companyVmStorage">
+        <option value="20">20 GB</option>
+        <option value="40" selected>40 GB</option>
+        <option value="60">60 GB</option>
+        <option value="80">80 GB</option>
+        <option value="120">120 GB</option>
+        <option value="160">160 GB</option>
+        <option value="200">200 GB</option>
+        <option value="256">256 GB</option>
+        <option value="512">512 GB</option>
+      </select>
+      <div class="note"><strong>Why increase storage?</strong> Multiply disk sizing by the VM count to estimate total storage impact on the host.</div>
+    </div>
+
+    <div class="field">
+      <div class="label">Notes</div>
+      <div class="pill warn" id="companyFormHintPill">Hyper-V demo parameters (adjust to host capacity)</div>
+      <div class="note"><strong>Tip:</strong> Batch builds can saturate CPU/RAM/disk I/O quickly—size conservatively or use multiple hosts.</div>
+    </div>
+  </div>
+
+  <div class="pill" id="companyVmError" style="display:none;"></div>
+
+  <div class="cmdwrap" id="companyBatchWrap" style="display:none;">
+    <div class="cmdhead">
+      <div class="label">Batch Provisioning Result</div>
+      <div class="inline-actions">
+        <button class="btn small" type="button" id="companyCopySummaryBtn">Copy Summary</button>
+      </div>
+    </div>
+
+    <textarea class="cmdarea" id="companyBatchSummary" readonly></textarea>
+
+    <div class="muted-line" id="companyBatchInfoLine">
+      Batch output will list each VM, its internal IP, external RDP address, and external port.
+    </div>
+  </div>
+</div>
+
+            <!-- Pricing Page Content -->
+            <div class="card span-12" id="pricingCard" style="display:none; min-height:auto;">
+              <h3>Pricing</h3>
+
+              <div class="pricing-wrap" aria-label="Pricing content">
+                <p class="pricing-lead">
+                  VM provisioning is priced by <strong>deployment type</strong> (Single VM vs Company Batch),
+                  plus the selected resource profile (<strong>vCPU</strong>, <strong>RAM</strong>, <strong>Storage</strong>).
+                  This is an <strong>HND demonstration model</strong> for structuring service tiers (not live billing).
+                </p>
+
+                <div class="pricing-section">
+                  <h4>Single VM Provisioning</h4>
+                  <p>
+                    Designed for individual systems, labs, testing workloads, or a single service VM.
+                    Includes creation, resource allocation, naming, and job logging.
+                  </p>
+
+                  <div class="pricing-badges">
+                    <span class="pill">Base build fee: <span class="price">£15</span> per VM</span>
+                    <span class="pill">Includes: name + CPU/RAM/Storage allocation</span>
+                    <span class="pill">Output: job ID + recorded status</span>
+                  </div>
+
+                  <table class="table" aria-label="Single VM add-ons table">
+                    <thead>
+                      <tr>
+                        <th>Resource</th>
+                        <th>Included</th>
+                        <th>Additional Cost</th>
+                        <th>Notes</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr>
+                        <td>CPU</td>
+                        <td>2 vCPU</td>
+                        <td>+£3 per additional 2 vCPU</td>
+                        <td>Scaling for multi-service workloads and parallel tasks.</td>
+                      </tr>
+                      <tr>
+                        <td>RAM</td>
+                        <td>4 GB</td>
+                        <td>+£2 per additional 4 GB</td>
+                        <td>Reduces paging; better for IDEs, databases, and heavy apps.</td>
+                      </tr>
+                      <tr>
+                        <td>Storage</td>
+                        <td>40 GB</td>
+                        <td>+£1 per additional 20 GB</td>
+                        <td>More space for OS updates, apps, logs, and data growth.</td>
+                      </tr>
+                    </tbody>
+                  </table>
+
+                  <p class="pricing-lead" style="margin-top:10px;">
+                    Example: <span class="mono">4 vCPU / 8 GB / 80 GB</span> =
+                    Base £15 + CPU £3 + RAM £2 + Storage £2 → <span class="price">£22</span>
+                  </p>
+                </div>
+
+                <div class="pricing-section">
+                  <h4>Company Batch VM Deployment</h4>
+                  <p>
+                    Designed for departments, labs, training environments, or small application fleets.
+                    Batch deployments use a shared profile and automated naming (e.g. <span class="mono">PREFIX-01</span> … <span class="mono">PREFIX-N</span>).
+                  </p>
+
+                  <div class="pricing-badges">
+                    <span class="pill">Batch setup fee: <span class="price">£25</span> per request</span>
+                    <span class="pill">Includes: name generation + batch plan output</span>
+                    <span class="pill">Best for repeatable multi-VM builds</span>
+                  </div>
+
+                  <table class="table" aria-label="Company batch tiers table">
+                    <thead>
+                      <tr>
+                        <th>Profile</th>
+                        <th>Resources</th>
+                        <th>Price per VM</th>
+                        <th>Use Case</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr>
+                        <td>Standard</td>
+                        <td><span class="mono">2 vCPU / 4 GB / 40 GB</span></td>
+                        <td>£12</td>
+                        <td>Basic services, lab desktops, training VMs.</td>
+                      </tr>
+                      <tr>
+                        <td>Performance</td>
+                        <td><span class="mono">4 vCPU / 8 GB / 80 GB</span></td>
+                        <td>£18</td>
+                        <td>Application servers, heavier labs, multi-user tools.</td>
+                      </tr>
+                      <tr>
+                        <td>High Performance</td>
+                        <td><span class="mono">8 vCPU / 16 GB / 120 GB</span></td>
+                        <td>£28</td>
+                        <td>Databases, CI workloads, compute-heavy services.</td>
+                      </tr>
+                    </tbody>
+                  </table>
+
+                  <p class="pricing-lead" style="margin-top:10px;">
+                    Example: 10 Standard VMs =
+                    Setup £25 + (10 × £12 = £120) → <span class="price">£145</span>
+                  </p>
+                </div>
+
+                <div class="pricing-section">
+                  <h4>Host Resource Consideration</h4>
+                  <p>
+                    Batch builds multiply resource impact. Plan against host limits to avoid CPU contention, RAM pressure, and disk I/O bottlenecks.
+                  </p>
+                  <div class="pricing-badges">
+                    <span class="pill">Total CPU = Count × vCPU</span>
+                    <span class="pill">Total RAM = Count × RAM</span>
+                    <span class="pill">Total Storage = Count × Storage</span>
+                  </div>
+                  <p class="pricing-lead" style="margin-top:10px;">
+                    This page models service structuring for the HND portal; it does not implement payment or live billing.
+                  </p>
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+<script>
+  async function checkLogin() {
+    const response = await fetch("/api/me", {
+      credentials: "include"
+    });
+
+    if (!response.ok) {
+      window.location.href = "/login.html";
+      return;
+    }
+
+    const user = await response.json();
+
+    const userDisplay = document.getElementById("userDisplay");
+    if (userDisplay) {
+      userDisplay.textContent = user.username;
+    }
+  }
+
+  async function logout() {
+    await fetch("/api/logout", {
+      method: "POST",
+      credentials: "include"
+    });
+
+    window.location.href = "/login.html";
+  }
+
+  let inactivityTimer;
+
+  function resetInactivityTimer() {
+    clearTimeout(inactivityTimer);
+
+    inactivityTimer = setTimeout(async () => {
+      try {
+        await fetch("/api/logout", {
+          method: "POST",
+          credentials: "include"
+        });
+      } catch (e) {}
+
+      window.location.href = "/login.html?reason=timeout";
+    }, 30 * 60 * 1000);
+  }
+
+  function startInactivityLogout() {
+    ["click", "mousemove", "keydown", "scroll", "touchstart"].forEach(eventName => {
+      document.addEventListener(eventName, resetInactivityTimer);
+    });
+
+    resetInactivityTimer();
+  }
+
+  async function fetchJsonOrThrow(url, options) {    const res = await fetch(url, options);
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) {
+      throw new Error(data.error || data.detail || `HTTP ${res.status}`);
+    }
+    return data;
+  }
+
+  async function getProvisionStatus(jobId) {
+    return await fetchJsonOrThrow(`/api/provision-status/${encodeURIComponent(jobId)}`);
+  }
+
+  async function waitForProvisionCompletion(jobId, maxMinutes = 15) {
+    const maxAttempts = Math.ceil((maxMinutes * 60) / 5);
+
+    for (let i = 0; i < maxAttempts; i++) {
+      const data = await getProvisionStatus(jobId);
+
+      if (data && data.job) {
+        const status = (data.job.status || "").toLowerCase();
+
+        if (status === "completed") {
+          return data.job;
+        }
+
+        if (status === "failed") {
+          throw new Error(data.job.error || "Provisioning failed.");
+        }
+      }
+
+      await new Promise(resolve => setTimeout(resolve, 5000));
+    }
+
+    throw new Error("Timed out waiting for provisioning to complete.");
+  }
+
+  async function provisionSingleFromUI() {
+  const loggedInUser = document.getElementById("userDisplay").textContent.trim();
+
+  const payload = {
+    username: document.getElementById("vmName").value.trim(),
+    assignedUser: loggedInUser,
+    memoryGB: parseInt(document.getElementById("vmRam").value, 10),
+    dataDiskGB: parseInt(document.getElementById("vmStorage").value, 10),
+    cpuCount: parseInt(document.getElementById("vmCpu").value, 10)
+  };
+
+  return await fetchJsonOrThrow("/api/provision", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify(payload)
+  });
+}
+
+  async function provisionCompanyFromUI() {
+    const payload = {
+      prefix: document.getElementById("companyVmPrefix").value.trim(),
+      count: parseInt(document.getElementById("companyVmCount").value, 10),
+      padWidth: 2,
+      memoryGB: parseInt(document.getElementById("companyVmRam").value, 10),
+      dataDiskGB: parseInt(document.getElementById("companyVmStorage").value, 10),
+      cpuCount: parseInt(document.getElementById("companyVmCpu").value, 10)
+    };
+
+    return await fetchJsonOrThrow("/api/provision-batch", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify(payload)
+    });
+  }
+
+  async function fetchRdpFileUrl(vmName) {
+    return `/api/vms/${encodeURIComponent(vmName)}/rdp`;
+  }
+
+  function shortErr(e) {
+    const msg = (e && e.message) ? e.message : String(e || "");
+    return msg.split(/\r?\n/)[0].slice(0, 240);
+  }
+
+  function copyText(text) {
+    if (!text) return Promise.reject(new Error("Nothing to copy."));
+    return navigator.clipboard.writeText(text);
+  }
+
+  function safeText(v) {
+    if (v === null || v === undefined) return "";
+    return String(v);
+  }
+
+function formatBatchSummary(data) {
+  const results = Array.isArray(data && data.results) ? data.results : [];
+  if (!results.length) return "No batch result records returned.";
+
+  const lines = [];
+  lines.push(`Batch Mode: ${safeText(data.mode || "batch")}`);
+  lines.push(`Total VM Records: ${results.length}`);
+  lines.push("");
+
+  results.forEach((item, idx) => {
+    const vmName = safeText(item.vmName || "-");
+    const username = safeText(item.username || "-");
+    const assignedUser = safeText(item.assignedUser || username || "-");
+    const internalIp = safeText(item.ipAddress || item.internalIp || "-");
+    const publicRdpIp = safeText(item.publicRdpIp || "-");
+    const externalPort = safeText(item.externalRdpPort || item.externalPort || "-");
+    const rdpAddress = safeText(item.rdpAddress || item.externalRdpAddress || "-");
+    const status = safeText(item.status || "-");
+
+    lines.push(`VM ${idx + 1}`);
+    lines.push(`Name: ${vmName}`);
+    lines.push(`Username: ${username}`);
+    lines.push(`Assigned User: ${assignedUser}`);
+    lines.push(`Internal IP: ${internalIp}`);
+    lines.push(`Public RDP IP: ${publicRdpIp}`);
+    lines.push(`External Port: ${externalPort}`);
+    lines.push(`RDP Address: ${rdpAddress}`);
+    lines.push(`Status: ${status}`);
+    lines.push("");
+  });
+
+  return lines.join("\n");
+}
+
+  const views = {
+    home: {
+      crumb: "Home",
+      title: "VM Provisioning Portal",
+      subtitle:
+        "Request, parameterize, and execute virtual machine builds. Select storage targets, track execution, and audit outputs.",
+      primary: "Open Create VM",
+      secondary: "Open About Us",
+      status: "Ready",
+      cardA: { h: "Control Flow", p: "User → Configuration → Execution. One screen per decision. No vendor styling." },
+      cardB: { h: "Provisioning Output", p: "Track VM creation results, internal IPs, and external RDP access details." }
+    },
+
+    create_single: {
+      crumb: "Create VM / Single VM",
+      title: "Create Single VM",
+      subtitle:
+        "Single customer build: pick template, CPU/RAM, network, hostname, and storage target. Submit one job.",
+      primary: "Start Build",
+      secondary: "Back to Home",
+      status: "Awaiting parameters",
+      cardA: { h: "Inputs", p: "Template, CPU, RAM, network profile, VM name, storage target." },
+      cardB: { h: "Output", p: "One job ID returned; status, IP and external RDP address are recorded." }
+    },
+
+    create_company: {
+      crumb: "Create VM / Company use VMs",
+      title: "Create Company use VMs",
+      subtitle:
+        "Company build: create multiple VMs in one request using a consistent profile and naming scheme.",
+      primary: "Create Batch",
+      secondary: "Back to Home",
+      status: "Awaiting batch parameters",
+      cardA: { h: "Batch Inputs", p: "VM count, naming pattern, template, resources, network profile." },
+      cardB: { h: "Result", p: "Batch job returns per-VM internal IPs and external RDP ports." }
+    },
+
+  
+
+    pricing: {
+      crumb: "Pricing",
+      title: "Pricing",
+      subtitle:
+        "Pricing model for Single VM builds and Company batch deployments, based on CPU/RAM/Storage and deployment scale.",
+      primary: "Select Tier",
+      secondary: "Back to Home",
+      status: "Viewing pricing",
+      cardA: { h: "Single vs Batch", p: "Single VM is priced per build; Company deployment adds a batch setup fee and a per-VM rate." },
+      cardB: { h: "Capacity Planning", p: "Batch builds multiply host resource impact. Keep within Hyper-V host limits to avoid contention." }
+    },
+your_vms: {
+  crumb: "Your VMs",
+  title: "Your VMs",
+  subtitle:
+    "View the virtual machines created by your account, including IP addresses and RDP connection details.",
+  primary: "Refresh VMs",
+  secondary: "Back to Home",
+  status: "Viewing your VMs",
+  cardA: { h: "VM Ownership", p: "Only VMs created by your logged-in portal account are shown here." },
+  cardB: { h: "RDP Details", p: "Use the external RDP address and assigned user details to connect." }
+},
+    about: {
+  crumb: "About Us",
+  title: "About Us",
+  subtitle:
+    "We are a group of three HND Networking students who designed, built, and troubleshooted a custom Hyper-V virtual machine provisioning and remote access platform. The project combines networking, Windows Server administration, automation, Active Directory, VLAN segmentation, NAT, firewall rules, and remote desktop access into one working infrastructure system.",
+  primary: "Back to Home",
+  secondary: "Open Pricing",
+  status: "Project overview",
+  cardA: {
+    h: "What We Built",
+    p: "Our platform allows users to request Windows virtual machines through a web portal. The backend uses automation to create VMs from a prepared Hyper-V template, configure resources, join machines to the Active Directory domain, and prepare them for remote access."
+  },
+  cardB: {
+    h: "Networking Focus",
+    p: "The main technical focus was the network design behind the platform: VLAN separation, DHCP, DNS, routing, firewall policy, NAT, RDP access, and later RADIUS wireless authentication testing."
+  }
+},
+  }
+
+  const crumb = document.getElementById("crumb");
+  const title = document.getElementById("title");
+  const subtitle = document.getElementById("subtitle");
+  const primaryAction = document.getElementById("primaryAction");
+  const secondaryAction = document.getElementById("secondaryAction");
+  const statusText = document.getElementById("statusText");
+  const cardA = document.getElementById("cardA");
+  const cardB = document.getElementById("cardB");
+
+  const singleVmCard = document.getElementById("singleVmCard");
+  const vmName = document.getElementById("vmName");
+  const vmCpu = document.getElementById("vmCpu");
+  const vmRam = document.getElementById("vmRam");
+  const vmStorage = document.getElementById("vmStorage");
+  const singleVmError = document.getElementById("singleVmError");
+  const singleVmResults = document.getElementById("singleVmResults");
+  const singleResultVmName = document.getElementById("singleResultVmName");
+  const singleResultInternalIp = document.getElementById("singleResultInternalIp");
+  const singleResultRdpAddress = document.getElementById("singleResultRdpAddress");
+  const singleResultPublicIp = document.getElementById("singleResultPublicIp");
+  const singleResultExternalPort = document.getElementById("singleResultExternalPort");
+  const singleResultAssignedUser = document.getElementById("singleResultAssignedUser");
+  const singleRdpAddressInput = document.getElementById("singleRdpAddressInput");
+  const singleCopyRdpBtn = document.getElementById("singleCopyRdpBtn");
+  const singleDownloadRdpBtn = document.getElementById("singleDownloadRdpBtn");
+  const singleRdpWrap = document.getElementById("singleRdpWrap");
+  const singleRdpInfoLine = document.getElementById("singleRdpInfoLine");
+
+  const companyVmCard = document.getElementById("companyVmCard");
+  const companyVmCount = document.getElementById("companyVmCount");
+  const companyVmPrefix = document.getElementById("companyVmPrefix");
+  const companyVmCpu = document.getElementById("companyVmCpu");
+  const companyVmRam = document.getElementById("companyVmRam");
+  const companyVmStorage = document.getElementById("companyVmStorage");
+  const companyVmError = document.getElementById("companyVmError");
+  const companyBatchWrap = document.getElementById("companyBatchWrap");
+  const companyBatchSummary = document.getElementById("companyBatchSummary");
+  const companyBatchInfoLine = document.getElementById("companyBatchInfoLine");
+  const companyCopySummaryBtn = document.getElementById("companyCopySummaryBtn");
+
+  const pricingCard = document.getElementById("pricingCard");
+  const yourVmsPanel = document.getElementById("yourVmsPanel");
+  const yourVmsList = document.getElementById("yourVmsList");
+  const yourVmsError = document.getElementById("yourVmsError");
+  const refreshYourVmsBtn = document.getElementById("refreshYourVmsBtn");
+
+  let currentSingleVmNameForActions = "";
+  let currentSingleRdpAddressForActions = "";
+  let currentBatchSummaryForActions = "";
+
+  function setCards(a, b) {
+    cardA.querySelector("h3").textContent = a.h;
+    cardA.querySelector("p").textContent = a.p;
+    cardB.querySelector("h3").textContent = b.h;
+    cardB.querySelector("p").textContent = b.p;
+  }
+
+  function resetSingleVmOutput() {
+    singleVmError.style.display = "none";
+    singleVmError.className = "pill";
+    singleVmError.textContent = "";
+
+    singleVmResults.style.display = "none";
+    singleResultVmName.textContent = "-";
+    singleResultInternalIp.textContent = "-";
+    singleResultRdpAddress.textContent = "-";
+    singleResultPublicIp.textContent = "-";
+    singleResultExternalPort.textContent = "-";
+    singleResultAssignedUser.textContent = "-";
+
+    singleRdpWrap.style.display = "none";
+    singleRdpAddressInput.value = "";
+    singleRdpInfoLine.textContent = "Create the VM first. When provisioning completes, the external RDP address will appear here.";
+
+   currentSingleVmNameForActions = "";
+   currentSingleRdpAddressForActions = "";
+  }
+
+  function resetCompanyOutput() {
+    companyVmError.style.display = "none";
+    companyVmError.className = "pill";
+    companyVmError.textContent = "";
+
+    companyBatchWrap.style.display = "none";
+    companyBatchSummary.value = "";
+    companyBatchInfoLine.textContent = "Batch output will list each VM and its internal IP, external RDP address, and external port.";
+
+    currentBatchSummaryForActions = "";
+  }
+
+  function showSingleVmForm(show) {
+    singleVmCard.style.display = show ? "block" : "none";
+    if (!show) {
+      resetSingleVmOutput();
+    }
+  }
+
+  function showCompanyVmForm(show) {
+    companyVmCard.style.display = show ? "block" : "none";
+    if (!show) {
+      resetCompanyOutput();
+    }
+  }
+
+  function showPricing(show) {
+    pricingCard.style.display = show ? "block" : "none";
+  }
+
+function showYourVms(show) {
+  if (!yourVmsPanel) return;
+
+  yourVmsPanel.style.display = show ? "block" : "none";
+
+  if (show) {
+    loadYourVms();
+  }
+}
+
+async function loadYourVms() {
+  yourVmsError.style.display = "none";
+  yourVmsError.className = "pill";
+  yourVmsError.textContent = "";
+
+  yourVmsList.innerHTML = "";
+
+  try {
+    statusText.textContent = "Loading your VMs...";
+
+    const data = await fetchJsonOrThrow("/api/my-vms", {
+      credentials: "include"
+    });
+
+    if (!data.vms || data.vms.length === 0) {
+      yourVmsList.innerHTML = `
+        <div class="pill warn">
+          No VMs found for this account yet.
+        </div>
+      `;
+      statusText.textContent = "No VMs found";
+      return;
+    }
+
+    data.vms.forEach(vm => {
+      const rdpAddress = vm.rdpAddress || "";
+      const vmName = vm.vmName || "-";
+      const ipAddress = vm.ipAddress || "-";
+      const publicIp = vm.publicRdpIp || "-";
+      const externalPort = vm.externalRdpPort || "-";
+      const assignedUser = vm.assignedUser || "-";
+      const status = vm.status || "-";
+      const created = vm.creationDateUtc
+        ? new Date(vm.creationDateUtc).toLocaleString()
+        : "-";
+
+      const card = document.createElement("div");
+      card.className = "pricing-section";
+
+      card.innerHTML = `
+        <h4>${escapeHtml(vmName)}</h4>
+
+        <table class="table">
+          <tbody>
+            <tr>
+              <th>Status</th>
+              <td>${escapeHtml(status)}</td>
+            </tr>
+            <tr>
+              <th>Internal IP</th>
+              <td class="mono">${escapeHtml(ipAddress)}</td>
+            </tr>
+            <tr>
+              <th>Public RDP IP</th>
+              <td class="mono">${escapeHtml(publicIp)}</td>
+            </tr>
+            <tr>
+              <th>External RDP Port</th>
+              <td class="mono">${escapeHtml(String(externalPort))}</td>
+            </tr>
+            <tr>
+              <th>RDP Address</th>
+              <td class="mono">${escapeHtml(rdpAddress || "-")}</td>
+            </tr>
+            <tr>
+              <th>Assigned User</th>
+              <td>${escapeHtml(assignedUser)}</td>
+            </tr>
+            <tr>
+              <th>Resources</th>
+              <td>${escapeHtml(String(vm.cpuCount))} vCPU / ${escapeHtml(String(vm.memoryGB))} GB RAM / ${escapeHtml(String(vm.dataDiskGB))} GB Storage</td>
+            </tr>
+            <tr>
+              <th>Created</th>
+              <td>${escapeHtml(created)}</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <div class="inline-actions">
+          <button class="btn small" type="button" onclick="copyText('${escapeJs(rdpAddress)}')">Copy RDP Address</button>
+          <button class="btn small" type="button" onclick="downloadRdpForVm('${escapeJs(vmName)}')">Download .RDP</button>
+        </div>
+      `;
+
+      yourVmsList.appendChild(card);
+    });
+
+    statusText.textContent = `Loaded ${data.vms.length} VM(s)`;
+  } catch (e) {
+    yourVmsError.style.display = "inline-flex";
+    yourVmsError.className = "pill err";
+    yourVmsError.textContent = shortErr(e);
+    statusText.textContent = "Failed to load your VMs";
+  }
+}
+
+function escapeHtml(value) {
+  return String(value ?? "")
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#039;");
+}
+
+function escapeJs(value) {
+  return String(value ?? "")
+    .replaceAll("\\", "\\\\")
+    .replaceAll("'", "\\'")
+    .replaceAll('"', '\\"')
+    .replaceAll("\n", "\\n")
+    .replaceAll("\r", "\\r");
+}
+
+function downloadRdpForVm(vmName) {
+  if (!vmName) return;
+  window.location.href = `/api/vms/${encodeURIComponent(vmName)}/rdp`;
+}
+
+  function setBusy(isBusy) {
+    primaryAction.disabled = isBusy;
+    secondaryAction.disabled = isBusy;
+    document.querySelectorAll(".navbtn").forEach(btn => {
+      btn.disabled = isBusy;
+    });
+    singleCopyRdpBtn.disabled = isBusy;
+    singleDownloadRdpBtn.disabled = isBusy;
+    companyCopySummaryBtn.disabled = isBusy;
+  }
+
+
+  function showSingleVmSummary(job) {
+  const vmNameText = safeText(job.vmName || "-");
+  const internalIpText = safeText(job.ipAddress || job.internalIp || "-");
+  const publicIpText = safeText(job.publicRdpIp || "-");
+  const externalPortText = job.externalRdpPort
+    ? String(job.externalRdpPort)
+    : (job.externalPort ? String(job.externalPort) : "-");
+  const rdpAddressText = safeText(job.rdpAddress || job.externalRdpAddress || "-");
+  const assignedUserText = safeText(job.assignedUser || job.username || "-");
+
+  singleVmResults.style.display = "grid";
+  singleResultVmName.textContent = vmNameText;
+  singleResultInternalIp.textContent = internalIpText;
+  singleResultRdpAddress.textContent = rdpAddressText;
+  singleResultPublicIp.textContent = publicIpText;
+  singleResultExternalPort.textContent = externalPortText;
+  singleResultAssignedUser.textContent = assignedUserText;
+
+  currentSingleVmNameForActions = vmNameText !== "-" ? vmNameText : "";
+  currentSingleRdpAddressForActions = rdpAddressText !== "-" ? rdpAddressText : "";
+
+  if (currentSingleRdpAddressForActions) {
+    singleRdpWrap.style.display = "block";
+    singleRdpAddressInput.value = currentSingleRdpAddressForActions;
+singleRdpInfoLine.textContent = `Use Remote Desktop Connection with ${currentSingleRdpAddressForActions}, or open the VM through Guacamole in the browser.`;
+  } else {
+    singleRdpWrap.style.display = "none";
+    singleRdpAddressInput.value = "";
+    singleRdpInfoLine.textContent = "Create the VM first. When provisioning completes, the external RDP address will appear here.";
+  }
+}
+
+  function setActive(viewKey) {
+    const v = views[viewKey] || views.home;
+
+    window.__currentViewKey = viewKey;
+
+    crumb.textContent = v.crumb;
+    title.textContent = v.title;
+    subtitle.textContent = v.subtitle;
+    primaryAction.textContent = v.primary;
+    secondaryAction.textContent = v.secondary;
+    statusText.textContent = v.status;
+
+    setCards(v.cardA, v.cardB);
+
+    showSingleVmForm(viewKey === "create_single");
+    showCompanyVmForm(viewKey === "create_company");
+    showPricing(viewKey === "pricing");
+    showYourVms(viewKey === "your_vms");
+
+    cardA.style.display = (viewKey === "home") ? "block" : "none";
+    cardB.style.display = (viewKey === "home") ? "block" : "none";
+
+    document.querySelectorAll(".navbtn").forEach(btn => {
+      const isSub = btn.classList.contains("subitem");
+      const match = btn.dataset.view === viewKey;
+      btn.classList.toggle("active", match);
+      if (!isSub && btn.dataset.view && btn.dataset.view.startsWith("create")) btn.classList.remove("active");
+    });
+
+    primaryAction.onclick = async () => {
+      if (viewKey === "home") {
+        const createMenu = document.getElementById("createMenu");
+        if (createMenu) createMenu.open = true;
+        setActive("create_single");
+        return;
+      }
+
+      if (viewKey === "about") {
+        setActive("home");
+        return;
+      }
+
+      if (viewKey === "pricing") {
+        statusText.textContent = "Tier selected (demo)";
+        return;
+      }
+
+      if (viewKey === "your_vms") {
+  loadYourVms();
+  return;
+}
+
+      if (viewKey === "create_single") {
+        const name = (vmName.value || "").trim();
+
+        if (!name) {
+          singleVmError.style.display = "inline-flex";
+          singleVmError.className = "pill err";
+          singleVmError.textContent = "VM Name is required.";
+          statusText.textContent = "Awaiting parameters";
+          vmName.focus();
+          return;
+        }
+
+        singleVmError.style.display = "inline-flex";
+        singleVmError.className = "pill";
+        singleVmError.textContent =
+          `Queued: Name=${name} | CPU=${vmCpu.value} vCPU | RAM=${vmRam.value} GB | Storage=${vmStorage.value} GB`;
+
+        resetSingleVmOutput();
+        singleVmError.style.display = "inline-flex";
+        singleVmError.className = "pill";
+        singleVmError.textContent =
+          `Queued: Name=${name} | CPU=${vmCpu.value} vCPU | RAM=${vmRam.value} GB | Storage=${vmStorage.value} GB`;
+
+        try {
+          setBusy(true);
+          statusText.textContent = "Creating VM...";
+
+          const result = await provisionSingleFromUI();
+
+          if (!result || !result.jobId) {
+            throw new Error("Provisioning started but no job ID was returned.");
+          }
+
+          singleVmError.style.display = "inline-flex";
+          singleVmError.className = "pill";
+          singleVmError.textContent =
+            `Provisioning started: ${result.inventory?.vmName || name} | Job=${result.jobId}`;
+
+          statusText.textContent = "Provisioning in progress...";
+
+          const finalJob = await waitForProvisionCompletion(result.jobId, 30);
+
+          showSingleVmSummary(finalJob);
+
+          singleVmError.style.display = "inline-flex";
+          singleVmError.className = "pill okpill";
+          singleVmError.textContent =
+            finalJob.rdpAddress
+              ? `Created: ${finalJob.vmName} | External RDP Address=${finalJob.rdpAddress}`
+              : (finalJob.ipAddress
+                  ? `Created: ${finalJob.vmName} | Internal IP=${finalJob.ipAddress}`
+                  : `Created: ${finalJob.vmName} | IP pending`);
+
+          statusText.textContent = finalJob.rdpAddress
+            ? `VM ready: ${finalJob.rdpAddress}`
+            : (finalJob.ipAddress ? `VM ready: ${finalJob.ipAddress}` : "VM created. IP pending.");
+        } catch (e) {
+          singleVmError.style.display = "inline-flex";
+          singleVmError.className = "pill err";
+          singleVmError.textContent = shortErr(e);
+          statusText.textContent = "Provisioning failed. VM not created";
+        } finally {
+          setBusy(false);
+        }
+
+        return;
+      }
+
+      if (viewKey === "create_company") {
+        const count = parseInt(companyVmCount.value, 10);
+        const prefix = (companyVmPrefix.value || "").trim();
+
+        if (!prefix) {
+          companyVmError.style.display = "inline-flex";
+          companyVmError.className = "pill err";
+          companyVmError.textContent = "VM Name Prefix is required.";
+          statusText.textContent = "Awaiting batch parameters";
+          companyVmPrefix.focus();
+          return;
+        }
+
+        resetCompanyOutput();
+
+        companyVmError.style.display = "inline-flex";
+        companyVmError.className = "pill";
+        companyVmError.textContent =
+          `Queued: Prefix=${prefix} | Count=${count} | CPU=${companyVmCpu.value} vCPU | RAM=${companyVmRam.value} GB | Storage=${companyVmStorage.value} GB`;
+
+        try {
+          setBusy(true);
+          statusText.textContent = "Creating batch...";
+          const result = await provisionCompanyFromUI();
+
+          const summary = formatBatchSummary(result);
+          currentBatchSummaryForActions = summary;
+
+          companyBatchWrap.style.display = "block";
+          companyBatchSummary.value = summary;
+          companyBatchInfoLine.textContent =
+            "Each VM record below includes external RDP address.";
+
+          companyVmError.style.display = "inline-flex";
+          companyVmError.className = "pill okpill";
+          companyVmError.textContent =
+            result && result.results && Array.isArray(result.results)
+              ? `Batch created: ${result.results.length} VM record(s) returned with RDP ports.`
+              : "Batch request completed.";
+
+          statusText.textContent = "Batch created successfully.";
+        } catch (e) {
+          companyVmError.style.display = "inline-flex";
+          companyVmError.className = "pill err";
+          companyVmError.textContent = shortErr(e);
+          statusText.textContent = "Batch failed.";
+        } finally {
+          setBusy(false);
+        }
+
+        return;
+      }
+    };
+
+    secondaryAction.onclick = () => {
+      if (viewKey === "home") return setActive("about");
+      if (viewKey === "about") return setActive("pricing");
+      if (viewKey === "pricing") return setActive("home");
+      if (viewKey === "your_vms") return setActive("home");
+      return setActive("home");
+    };
+  }
+
+  singleCopyRdpBtn.addEventListener("click", async () => {
+    try {
+      await copyText(currentSingleRdpAddressForActions);
+      statusText.textContent = "RDP address copied";
+    } catch (e) {
+      statusText.textContent = shortErr(e);
+    }
+  });
+
+
+
+  singleDownloadRdpBtn.addEventListener("click", async () => {
+    try {
+      if (!currentSingleVmNameForActions) {
+        throw new Error("No VM is loaded.");
+      }
+
+      const url = await fetchRdpFileUrl(currentSingleVmNameForActions);
+      window.location.href = url;
+      statusText.textContent = "RDP file requested";
+    } catch (e) {
+      statusText.textContent = shortErr(e);
+    }
+  });
+
+  companyCopySummaryBtn.addEventListener("click", async () => {
+    try {
+      await copyText(currentBatchSummaryForActions);
+      statusText.textContent = "Batch summary copied";
+    } catch (e) {
+      statusText.textContent = shortErr(e);
+    }
+  });
+
+  document.addEventListener("DOMContentLoaded", () => {
+    document.querySelectorAll(".navbtn[data-view]").forEach((btn) => {
+      btn.addEventListener("click", () => setActive(btn.dataset.view));
+    });
+
+    const createMenuSummary = document.getElementById("createMenuSummary");
+    const createMenu = document.getElementById("createMenu");
+
+    if (createMenuSummary && createMenu) {
+      createMenuSummary.addEventListener("click", (e) => {
+        e.preventDefault();
+        createMenu.open = !createMenu.open;
+
+        if (createMenu.open) {
+          setActive("create_single");
+        }
+      });
+    }
+
+    if (refreshYourVmsBtn) {
+  refreshYourVmsBtn.addEventListener("click", async () => {
+    await loadYourVms();
+  });
+}
+
+    window.addEventListener("keydown", (e) => {
+      if (
+        e.target &&
+        (
+          e.target.tagName === "INPUT" ||
+          e.target.tagName === "TEXTAREA" ||
+          e.target.tagName === "SELECT"
+        )
+      ) return;
+
+      const k = e.key.toLowerCase();
+
+      if (k === "h") setActive("home");
+      else if (k === "p") setActive("pricing");
+      else if (k === "v") setActive("your_vms");
+      else if (k === "a") setActive("about");
+      else if (k === "g") window.open("http://192.168.109.10:8081/guacamole", "_blank");
+      else if (k === "1") {
+        if (createMenu) createMenu.open = true;
+        setActive("create_single");
+      }
+      else if (k === "2") {
+        if (createMenu) createMenu.open = true;
+        setActive("create_company");
+      }
+      else if (k === "c") {
+        if (createMenu) createMenu.open = true;
+        setActive("create_single");
+      }
+    });
+
+    checkLogin();
+    startInactivityLogout();
+    setActive("home");
+  });
+</script></body>
+</html>

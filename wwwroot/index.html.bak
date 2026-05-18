@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title>Customer VM Provisioning</title>
+    <link rel="stylesheet" href="site.css">
+</head>
+<body>
+    <div class="container">
+        <!-- ALL existing content stays here -->
+    </div>
+</body>
+<body>
+    <h1>Customer VM Provisioning</h1>
+
+    <form id="vmForm">
+        <label>Username:
+            <input type="text" id="username" required />
+        </label><br>
+
+        <label>Memory (GB):
+            <select id="memory">
+                <option value="4">4 GB</option>
+                <option value="8">8 GB</option>
+                <option value="16">16 GB</option>
+            </select>
+        </label><br>
+
+        <label>Extra Storage (GB):
+            <select id="datadisk">
+                <option value="20">20 GB</option>
+                <option value="50">50 GB</option>
+                <option value="100">100 GB</option>
+            </select>
+        </label><br>
+
+        <button type="submit">Provision VM</button>
+    </form>
+
+    <h2>Result</h2>
+    <pre id="output">Waiting...</pre>
+
+    <script>
+        const form = document.getElementById('vmForm');
+        const output = document.getElementById('output');
+
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            output.textContent = "Creating VM...";
+
+            const payload = {
+                username: document.getElementById('username').value,
+                memoryGB: parseInt(document.getElementById('memory').value),
+                dataDiskGB: parseInt(document.getElementById('datadisk').value)
+            };
+
+            const res = await fetch('http://localhost:5090/api/provision', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+
+            const text = await res.text();
+            output.textContent = text;
+        });
+    </script>
+</body>
+</html>

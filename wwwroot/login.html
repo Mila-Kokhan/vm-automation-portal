@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Login | VM Automation Portal</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <style>
+        * { box-sizing: border-box; }
+
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background: linear-gradient(135deg, #0f172a, #1e293b);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #ffffff;
+        }
+
+        .login-container {
+            width: 100%;
+            max-width: 420px;
+            padding: 20px;
+        }
+
+        .login-card {
+            background: #111827;
+            border: 1px solid #334155;
+            border-radius: 16px;
+            padding: 35px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.45);
+        }
+
+        h1 {
+            margin: 0;
+            text-align: center;
+            font-size: 26px;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #94a3b8;
+            margin-top: 8px;
+            margin-bottom: 25px;
+            font-size: 14px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 7px;
+            font-size: 14px;
+            color: #cbd5e1;
+        }
+
+        input {
+            width: 100%;
+            padding: 13px;
+            margin-bottom: 18px;
+            border-radius: 8px;
+            border: 1px solid #475569;
+            background: #020617;
+            color: #ffffff;
+            font-size: 15px;
+            outline: none;
+        }
+
+        input:focus { border-color: #3b82f6; }
+
+        button {
+            width: 100%;
+            padding: 13px;
+            border: none;
+            border-radius: 8px;
+            background: #2563eb;
+            color: #ffffff;
+            font-size: 15px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        button:hover { background: #1d4ed8; }
+
+        button:disabled {
+            background: #475569;
+            cursor: not-allowed;
+        }
+
+        .error-message {
+            display: none;
+            margin-top: 16px;
+            padding: 12px;
+            background: #7f1d1d;
+            color: #fecaca;
+            border-radius: 8px;
+            font-size: 14px;
+            text-align: center;
+        }
+
+        .links {
+            margin-top: 20px;
+            text-align: center;
+            font-size: 14px;
+            line-height: 1.8;
+        }
+
+        .links a {
+            color: #60a5fa;
+            text-decoration: none;
+        }
+
+        .links a:hover { text-decoration: underline; }
+    </style>
+</head>
+
+<body>
+    <div class="login-container">
+        <div class="login-card">
+            <h1>VM Automation Portal</h1>
+            <div class="subtitle">Login with your username</div>
+
+            <form id="loginForm">
+                <label for="username">Username</label>
+                <input type="text" id="username" placeholder="Enter username" required>
+
+                <label for="password">Password</label>
+                <input type="password" id="password" placeholder="Enter password" required>
+
+                <button type="submit" id="loginButton">Login</button>
+
+                <div id="errorMessage" class="error-message">
+                    Invalid username or password.
+                </div>
+            </form>
+
+            <div class="links">
+                <a href="/register.html">Create account</a><br>
+                <a href="/reset-password.html">Forgot password?</a>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const loginForm = document.getElementById("loginForm");
+        const loginButton = document.getElementById("loginButton");
+        const errorMessage = document.getElementById("errorMessage");
+
+        loginForm.addEventListener("submit", async function (event) {
+            event.preventDefault();
+
+            errorMessage.style.display = "none";
+            loginButton.disabled = true;
+            loginButton.textContent = "Logging in...";
+
+            const username = document.getElementById("username").value.trim();
+            const password = document.getElementById("password").value;
+
+            try {
+                const response = await fetch("/api/login", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    credentials: "include",
+                    body: JSON.stringify({
+                        username: username,
+                        password: password
+                    })
+                });
+
+                if (response.ok) {
+                    window.location.href = "/index.html";
+                } else {
+                    errorMessage.style.display = "block";
+                }
+            } catch {
+                errorMessage.textContent = "Login service unavailable.";
+                errorMessage.style.display = "block";
+            }
+
+            loginButton.disabled = false;
+            loginButton.textContent = "Login";
+        });
+    </script>
+</body>
+</html>
